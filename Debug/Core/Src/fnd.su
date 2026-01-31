@@ -1,0 +1,5 @@
+../Core/Src/fnd.c:26:13:fndWriteSegment	16	static
+../Core/Src/fnd.c:37:6:fndAllDigitOff	8	static
+../Core/Src/fnd.c:45:6:fndDotOff	8	static
+../Core/Src/fnd.c:50:6:fndDotOn	8	static
+../Core/Src/fnd.c:55:6:fndDisplay	24	static

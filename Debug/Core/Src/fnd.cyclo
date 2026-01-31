@@ -1,0 +1,5 @@
+../Core/Src/fnd.c:26:13:fndWriteSegment	1
+../Core/Src/fnd.c:37:6:fndAllDigitOff	1
+../Core/Src/fnd.c:45:6:fndDotOff	1
+../Core/Src/fnd.c:50:6:fndDotOn	1
+../Core/Src/fnd.c:55:6:fndDisplay	10
