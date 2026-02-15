@@ -92,8 +92,5 @@
 - PARK DOYOUNG  
 - KIM SOOYEON  
 - LEE DONGJUN  
-
----
-
-### 🛠️ Fan Project – Pomodoro Breeze  
-STM32 Embedded Project
+- Fan Project – Pomodoro Breeze  
+- STM32 Embedded Project
