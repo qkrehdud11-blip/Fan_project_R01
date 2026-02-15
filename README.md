@@ -76,15 +76,12 @@
 
 ### 📁 Core/Src
 
-- `main.c` – Main loop & system entry point
-- `app.c` – Overall system control logic
-- `elevator.c` – Elevator state machine implementation
-- `stepper.c` – Lift motor (stepper) control
-- `servo.c` – Door open/close control
-- `button.c` – Button input handling & debouncing
-- `photo.c` – Photo interrupter FSM (floor detection)
-- `resident_uart.c` – UART command processing
-- `logger.c` – Debug logging output
+- `main.c` – 메인 제어 상태
+- `button.c` – 디바운싱 및 이벤트 처리
+- `led.c` – LED 상태 표현
+- `servo.c` – 서보모터 제어
+- `fnd.c` – Timer 기반 FND 제어
+- `usart.c` – DMA 기반 UART 통신
 
 
 ---
