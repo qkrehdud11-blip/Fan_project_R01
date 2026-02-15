@@ -1,5 +1,5 @@
-../Core/Src/fnd.c:26:13:fndWriteSegment	1
-../Core/Src/fnd.c:37:6:fndAllDigitOff	1
-../Core/Src/fnd.c:45:6:fndDotOff	1
-../Core/Src/fnd.c:50:6:fndDotOn	1
-../Core/Src/fnd.c:55:6:fndDisplay	10
+../Core/Src/fnd.c:35:13:fndWriteSegment	1
+../Core/Src/fnd.c:54:6:fndAllDigitOff	1
+../Core/Src/fnd.c:66:6:fndDotOff	1
+../Core/Src/fnd.c:75:6:fndDotOn	1
+../Core/Src/fnd.c:86:6:fndDisplay	10

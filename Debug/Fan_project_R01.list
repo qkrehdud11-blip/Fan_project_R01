@@ -27,25 +27,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
  11 .ARM.attributes 00000030  00000000  00000000  00006080  2**0
                   CONTENTS, READONLY
- 12 .debug_info   0000e3af  00000000  00000000  000060b0  2**0
+ 12 .debug_info   0000e3a8  00000000  00000000  000060b0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_abbrev 000027ea  00000000  00000000  0001445f  2**0
+ 13 .debug_abbrev 000027eb  00000000  00000000  00014458  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_aranges 00000dd8  00000000  00000000  00016c50  2**3
+ 14 .debug_aranges 00000dd8  00000000  00000000  00016c48  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_rnglists 00000aac  00000000  00000000  00017a28  2**0
+ 15 .debug_rnglists 00000aac  00000000  00000000  00017a20  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  000169c2  00000000  00000000  000184d4  2**0
+ 16 .debug_macro  000169c2  00000000  00000000  000184cc  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   00010e6d  00000000  00000000  0002ee96  2**0
+ 17 .debug_line   00010f13  00000000  00000000  0002ee8e  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0008ac29  00000000  00000000  0003fd03  2**0
+ 18 .debug_str    0008ac28  00000000  00000000  0003fda1  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  000ca92c  2**0
+ 19 .comment      00000043  00000000  00000000  000ca9c9  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  00003774  00000000  00000000  000ca970  2**2
+ 20 .debug_frame  00003774  00000000  00000000  000caa0c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 0000006d  00000000  00000000  000ce0e4  2**0
+ 21 .debug_line_str 0000006c  00000000  00000000  000ce180  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -370,15 +370,15 @@ Disassembly of section .text:
  8000502:	bf00      	nop
 
 08000504 <App_Init>:
-static uint8_t rotateFlag = 0; // 모터 회전 변수 추가
 
-
-
+/* =====================================================
+   초기화
+   ===================================================== */
 void App_Init(void)
 {
  8000504:	b580      	push	{r7, lr}
  8000506:	af00      	add	r7, sp, #0
-    ledOff(8);
+    ledOff(8);  // 시작 시 모든 LED OFF
  8000508:	2008      	movs	r0, #8
  800050a:	f000 fc11 	bl	8000d30 <ledOff>
 }
@@ -388,17 +388,20 @@ void App_Init(void)
 
 08000514 <App_HandleStop>:
 
+/* =====================================================
+   정지 처리
+   ===================================================== */
 void App_HandleStop(void)
 {
  8000514:	b580      	push	{r7, lr}
  8000516:	af00      	add	r7, sp, #0
-    Servo_Stop();
+    Servo_Stop();         // 서보 정지
  8000518:	f000 fd8e 	bl	8001038 <Servo_Stop>
-    TIM2->CCR1 = 0;
+    TIM2->CCR1 = 0;       // 모터 PWM OFF
  800051c:	f04f 4380 	mov.w	r3, #1073741824	@ 0x40000000
  8000520:	2200      	movs	r2, #0
  8000522:	635a      	str	r2, [r3, #52]	@ 0x34
-    runFlag = 0;
+    runFlag = 0;          // 동작 플래그 OFF
  8000524:	4b07      	ldr	r3, [pc, #28]	@ (8000544 <App_HandleStop+0x30>)
  8000526:	2200      	movs	r2, #0
  8000528:	701a      	strb	r2, [r3, #0]
@@ -406,12 +409,12 @@ void App_HandleStop(void)
  800052a:	4b07      	ldr	r3, [pc, #28]	@ (8000548 <App_HandleStop+0x34>)
  800052c:	2200      	movs	r2, #0
  800052e:	701a      	strb	r2, [r3, #0]
-    ledOff(8);
+    ledOff(8);            // LED 전체 OFF
  8000530:	2008      	movs	r0, #8
  8000532:	f000 fbfd 	bl	8000d30 <ledOff>
     ledLeftShiftFan_Stop();
  8000536:	f000 fc39 	bl	8000dac <ledLeftShiftFan_Stop>
-    rotateFlag = 0;
+    rotateFlag = 0;       // 서보 사용 불가
  800053a:	4b04      	ldr	r3, [pc, #16]	@ (800054c <App_HandleStop+0x38>)
  800053c:	2200      	movs	r2, #0
  800053e:	701a      	strb	r2, [r3, #0]
@@ -424,15 +427,18 @@ void App_HandleStop(void)
 
 08000550 <App_Handle50>:
 
+/* =====================================================
+   50% 속도 처리
+   ===================================================== */
 void App_Handle50(void)
 {
  8000550:	b580      	push	{r7, lr}
  8000552:	af00      	add	r7, sp, #0
-    TIM2->CCR1 = 1000;
+    TIM2->CCR1 = 1000;          // PWM 듀티 설정
  8000554:	f04f 4380 	mov.w	r3, #1073741824	@ 0x40000000
  8000558:	f44f 727a 	mov.w	r2, #1000	@ 0x3e8
  800055c:	635a      	str	r2, [r3, #52]	@ 0x34
-    startTick = HAL_GetTick();
+    startTick = HAL_GetTick();  // 시작 시간 기록
  800055e:	f001 f8fd 	bl	800175c <HAL_GetTick>
  8000562:	4603      	mov	r3, r0
  8000564:	4a09      	ldr	r2, [pc, #36]	@ (800058c <App_Handle50+0x3c>)
@@ -441,7 +447,7 @@ void App_Handle50(void)
  8000568:	4b09      	ldr	r3, [pc, #36]	@ (8000590 <App_Handle50+0x40>)
  800056a:	2201      	movs	r2, #1
  800056c:	701a      	strb	r2, [r3, #0]
-    ledCount = 4;
+    ledCount = 4;               // LED 4개 점등
  800056e:	4b09      	ldr	r3, [pc, #36]	@ (8000594 <App_Handle50+0x44>)
  8000570:	2204      	movs	r2, #4
  8000572:	701a      	strb	r2, [r3, #0]
@@ -451,7 +457,7 @@ void App_Handle50(void)
     ledOn(4);
  800057a:	2004      	movs	r0, #4
  800057c:	f000 fbb0 	bl	8000ce0 <ledOn>
-    rotateFlag = 1;
+    rotateFlag = 1;             // 서보 사용 가능
  8000580:	4b05      	ldr	r3, [pc, #20]	@ (8000598 <App_Handle50+0x48>)
  8000582:	2201      	movs	r2, #1
  8000584:	701a      	strb	r2, [r3, #0]
@@ -466,11 +472,14 @@ void App_Handle50(void)
 
 0800059c <App_Handle100>:
 
+/* =====================================================
+   100% 속도 처리
+   ===================================================== */
 void App_Handle100(void)
 {
  800059c:	b580      	push	{r7, lr}
  800059e:	af00      	add	r7, sp, #0
-    TIM2->CCR1 = 2000;
+    TIM2->CCR1 = 2000;          // PWM 듀티 설정
  80005a0:	f04f 4380 	mov.w	r3, #1073741824	@ 0x40000000
  80005a4:	f44f 62fa 	mov.w	r2, #2000	@ 0x7d0
  80005a8:	635a      	str	r2, [r3, #52]	@ 0x34
@@ -483,7 +492,7 @@ void App_Handle100(void)
  80005b4:	4b09      	ldr	r3, [pc, #36]	@ (80005dc <App_Handle100+0x40>)
  80005b6:	2201      	movs	r2, #1
  80005b8:	701a      	strb	r2, [r3, #0]
-    ledCount = 8;
+    ledCount = 8;               // LED 8개 점등
  80005ba:	4b09      	ldr	r3, [pc, #36]	@ (80005e0 <App_Handle100+0x44>)
  80005bc:	2208      	movs	r2, #8
  80005be:	701a      	strb	r2, [r3, #0]
@@ -508,39 +517,43 @@ void App_Handle100(void)
 
 080005e8 <App_HandleServo>:
 
+/* =====================================================
+   서보 동작 처리
+   ===================================================== */
 void App_HandleServo(void)
 {
  80005e8:	b580      	push	{r7, lr}
  80005ea:	af00      	add	r7, sp, #0
-  Servo_Swap();
+    Servo_Swap();  // 서보 상태 토글
  80005ec:	f000 fd10 	bl	8001010 <Servo_Swap>
 
-  if (Servo_IsRunning())
+    if (Servo_IsRunning())
  80005f0:	f000 fd7a 	bl	80010e8 <Servo_IsRunning>
  80005f4:	4603      	mov	r3, r0
  80005f6:	2b00      	cmp	r3, #0
  80005f8:	d002      	beq.n	8000600 <App_HandleServo+0x18>
-  {
-      ledLeftShiftFan_Start();
+    {
+        // 서보가 동작 중이면 LED 팬 모드 시작
+        ledLeftShiftFan_Start();
  80005fa:	f000 fbc1 	bl	8000d80 <ledLeftShiftFan_Start>
-      {
-      	ledOn(ledCount);
-      }
-
-  }
+        if (runFlag)
+        {
+            ledOn(ledCount);
+        }
+    }
 }
  80005fe:	e00d      	b.n	800061c <App_HandleServo+0x34>
-      ledLeftShiftFan_Stop();
+        ledLeftShiftFan_Stop();
  8000600:	f000 fbd4 	bl	8000dac <ledLeftShiftFan_Stop>
-      ledOff(8);
+        ledOff(8);
  8000604:	2008      	movs	r0, #8
  8000606:	f000 fb93 	bl	8000d30 <ledOff>
-      if (runFlag)
+        if (runFlag)
  800060a:	4b05      	ldr	r3, [pc, #20]	@ (8000620 <App_HandleServo+0x38>)
  800060c:	781b      	ldrb	r3, [r3, #0]
  800060e:	2b00      	cmp	r3, #0
  8000610:	d004      	beq.n	800061c <App_HandleServo+0x34>
-      	ledOn(ledCount);
+            ledOn(ledCount);
  8000612:	4b04      	ldr	r3, [pc, #16]	@ (8000624 <App_HandleServo+0x3c>)
  8000614:	781b      	ldrb	r3, [r3, #0]
  8000616:	4618      	mov	r0, r3
@@ -553,6 +566,9 @@ void App_HandleServo(void)
 
 08000628 <App_Task>:
 
+/* =====================================================
+   메인 태스크 (main loop에서 반복 호출)
+   ===================================================== */
 void App_Task(void)
 {
  8000628:	b580      	push	{r7, lr}
@@ -562,6 +578,7 @@ void App_Task(void)
  800062e:	2300      	movs	r3, #0
  8000630:	80fb      	strh	r3, [r7, #6]
 
+    /* ---------- 버튼 입력 처리 ---------- */
     if (buttonGetPressed(0))
  8000632:	2000      	movs	r0, #0
  8000634:	f000 f8c8 	bl	80007c8 <buttonGetPressed>
@@ -569,17 +586,18 @@ void App_Task(void)
  800063a:	2b00      	cmp	r3, #0
  800063c:	d002      	beq.n	8000644 <App_Task+0x1c>
     {
-    	App_HandleStop();
+        App_HandleStop();
  800063e:	f7ff ff69 	bl	8000514 <App_HandleStop>
  8000642:	e010      	b.n	8000666 <App_Task+0x3e>
     }
-    else if (buttonGetPressed(1)){
+    else if (buttonGetPressed(1))
  8000644:	2001      	movs	r0, #1
  8000646:	f000 f8bf 	bl	80007c8 <buttonGetPressed>
  800064a:	4603      	mov	r3, r0
  800064c:	2b00      	cmp	r3, #0
  800064e:	d002      	beq.n	8000656 <App_Task+0x2e>
-    	App_Handle50();
+    {
+        App_Handle50();
  8000650:	f7ff ff7e 	bl	8000550 <App_Handle50>
  8000654:	e007      	b.n	8000666 <App_Task+0x3e>
     }
@@ -590,32 +608,34 @@ void App_Task(void)
  800065e:	2b00      	cmp	r3, #0
  8000660:	d001      	beq.n	8000666 <App_Task+0x3e>
     {
-    	App_Handle100();
+        App_Handle100();
  8000662:	f7ff ff9b 	bl	800059c <App_Handle100>
     }
 
-
+    // 속도 설정 후에만 서보 버튼 허용
     if (rotateFlag)
  8000666:	4b2e      	ldr	r3, [pc, #184]	@ (8000720 <App_Task+0xf8>)
  8000668:	781b      	ldrb	r3, [r3, #0]
  800066a:	2b00      	cmp	r3, #0
  800066c:	d007      	beq.n	800067e <App_Task+0x56>
     {
-    	if (buttonGetPressed(3))
+        if (buttonGetPressed(3))
  800066e:	2003      	movs	r0, #3
  8000670:	f000 f8aa 	bl	80007c8 <buttonGetPressed>
  8000674:	4603      	mov	r3, r0
  8000676:	2b00      	cmp	r3, #0
  8000678:	d001      	beq.n	800067e <App_Task+0x56>
-    	{
-    		App_HandleServo();
+        {
+            App_HandleServo();
  800067a:	f7ff ffb5 	bl	80005e8 <App_HandleServo>
-    	}
+        }
     }
 
+    /* ---------- 서보 실행 ---------- */
     Servo_Run();
  800067e:	f000 fce7 	bl	8001050 <Servo_Run>
 
+    // 서보가 회전 중이면 LED 팬 애니메이션 실행
     if (Servo_IsRunning())
  8000682:	f000 fd31 	bl	80010e8 <Servo_IsRunning>
  8000686:	4603      	mov	r3, r0
@@ -627,6 +647,7 @@ void App_Task(void)
  8000690:	4618      	mov	r0, r3
  8000692:	f000 fb9d 	bl	8000dd0 <ledLeftShiftFan_Task>
 
+    /* ---------- 시간 표시 ---------- */
     if (runFlag)
  8000696:	4b24      	ldr	r3, [pc, #144]	@ (8000728 <App_Task+0x100>)
  8000698:	781b      	ldrb	r3, [r3, #0]
@@ -640,18 +661,23 @@ void App_Task(void)
  80006a6:	681b      	ldr	r3, [r3, #0]
  80006a8:	1ad3      	subs	r3, r2, r3
  80006aa:	603b      	str	r3, [r7, #0]
+
+        // 9초 경과 시 자동 정지
         if (now >= 9000)
  80006ac:	683b      	ldr	r3, [r7, #0]
  80006ae:	f242 3227 	movw	r2, #8999	@ 0x2327
  80006b2:	4293      	cmp	r3, r2
  80006b4:	d902      	bls.n	80006bc <App_Task+0x94>
         {
-        	App_HandleStop();
+            App_HandleStop();
  80006b6:	f7ff ff2d 	bl	8000514 <App_HandleStop>
  80006ba:	e028      	b.n	800070e <App_Task+0xe6>
-        }
         else
-            display = ((now / 1000) % 100) * 100 + (now % 1000) / 10;
+        {
+            // FND 표시 형식:
+            // 앞 2자리 = 초
+            // 뒤 2자리 = 10ms 단위
+            display = ((now / 1000) % 100) * 100
  80006bc:	683b      	ldr	r3, [r7, #0]
  80006be:	4a1c      	ldr	r2, [pc, #112]	@ (8000730 <App_Task+0x108>)
  80006c0:	fba2 2303 	umull	r2, r3, r2, r3
@@ -662,6 +688,7 @@ void App_Task(void)
  80006ce:	2164      	movs	r1, #100	@ 0x64
  80006d0:	fb01 f303 	mul.w	r3, r1, r3
  80006d4:	1ad3      	subs	r3, r2, r3
+                    + (now % 1000) / 10;
  80006d6:	b29b      	uxth	r3, r3
  80006d8:	461a      	mov	r2, r3
  80006da:	0092      	lsls	r2, r2, #2
@@ -684,10 +711,13 @@ void App_Task(void)
  8000702:	fba2 2303 	umull	r2, r3, r2, r3
  8000706:	08db      	lsrs	r3, r3, #3
  8000708:	b29b      	uxth	r3, r3
+            display = ((now / 1000) % 100) * 100
  800070a:	440b      	add	r3, r1
  800070c:	80fb      	strh	r3, [r7, #6]
+        }
     }
 
+    // 4자리 FND 멀티플렉싱 출력
     fndDisplay(display);
  800070e:	88fb      	ldrh	r3, [r7, #6]
  8000710:	4618      	mov	r0, r3
@@ -707,7 +737,10 @@ void App_Task(void)
  8000738:	cccccccd 	.word	0xcccccccd
 
 0800073c <App_UartCommand>:
-
+   '1' : 50%
+   '2' : 100%
+   '3' : 서보 토글
+   ===================================================== */
 void App_UartCommand(uint8_t cmd)
 {
  800073c:	b580      	push	{r7, lr}
@@ -715,7 +748,7 @@ void App_UartCommand(uint8_t cmd)
  8000740:	af00      	add	r7, sp, #0
  8000742:	4603      	mov	r3, r0
  8000744:	71fb      	strb	r3, [r7, #7]
-    if (cmd == '0') App_HandleStop();
+    if (cmd == '0')      App_HandleStop();
  8000746:	79fb      	ldrb	r3, [r7, #7]
  8000748:	2b30      	cmp	r3, #48	@ 0x30
  800074a:	d102      	bne.n	8000752 <App_UartCommand+0x16>
@@ -733,16 +766,18 @@ void App_UartCommand(uint8_t cmd)
  8000762:	d101      	bne.n	8000768 <App_UartCommand+0x2c>
  8000764:	f7ff ff1a 	bl	800059c <App_Handle100>
 
+    // 동작 중일 때만 서보 제어 허용
     if (runFlag == 1)
  8000768:	4b06      	ldr	r3, [pc, #24]	@ (8000784 <App_UartCommand+0x48>)
  800076a:	781b      	ldrb	r3, [r3, #0]
  800076c:	2b01      	cmp	r3, #1
  800076e:	d104      	bne.n	800077a <App_UartCommand+0x3e>
     {
-    	if (cmd == '3') App_HandleServo();
+        if (cmd == '3')
  8000770:	79fb      	ldrb	r3, [r7, #7]
  8000772:	2b33      	cmp	r3, #51	@ 0x33
  8000774:	d101      	bne.n	800077a <App_UartCommand+0x3e>
+            App_HandleServo();
  8000776:	f7ff ff37 	bl	80005e8 <App_HandleServo>
     }
 }
@@ -754,21 +789,22 @@ void App_UartCommand(uint8_t cmd)
  8000784:	200000a0 	.word	0x200000a0
 
 08000788 <ButtonInit>:
-
-
-
-// 버튼별 디바운싱 시간 초기화
-void ButtonInit()
+/* =====================================================
+   버튼별 디바운싱 시간(prevTime) 초기화
+   - 시스템 시작 시 1회 호출
+   ===================================================== */
+void ButtonInit(void)
 {
  8000788:	b480      	push	{r7}
  800078a:	b083      	sub	sp, #12
  800078c:	af00      	add	r7, sp, #0
-	for(uint8_t i = 0; i < BUTTON_COUNT; i++)
+    // 각 버튼의 마지막 유효 입력 시간을 0으로 초기화
+    for (uint8_t i = 0; i < BUTTON_COUNT; i++)
  800078e:	2300      	movs	r3, #0
  8000790:	71fb      	strb	r3, [r7, #7]
  8000792:	e00c      	b.n	80007ae <ButtonInit+0x26>
-	{
-		button[i].prevTime = 0;
+    {
+        button[i].prevTime = 0;
  8000794:	79fa      	ldrb	r2, [r7, #7]
  8000796:	490b      	ldr	r1, [pc, #44]	@ (80007c4 <ButtonInit+0x3c>)
  8000798:	4613      	mov	r3, r2
@@ -779,14 +815,14 @@ void ButtonInit()
  80007a2:	3308      	adds	r3, #8
  80007a4:	2200      	movs	r2, #0
  80007a6:	601a      	str	r2, [r3, #0]
-	for(uint8_t i = 0; i < BUTTON_COUNT; i++)
+    for (uint8_t i = 0; i < BUTTON_COUNT; i++)
  80007a8:	79fb      	ldrb	r3, [r7, #7]
  80007aa:	3301      	adds	r3, #1
  80007ac:	71fb      	strb	r3, [r7, #7]
  80007ae:	79fb      	ldrb	r3, [r7, #7]
  80007b0:	2b03      	cmp	r3, #3
  80007b2:	d9ef      	bls.n	8000794 <ButtonInit+0xc>
-	}
+    }
 }
  80007b4:	bf00      	nop
  80007b6:	bf00      	nop
@@ -798,9 +834,9 @@ void ButtonInit()
  80007c4:	20000000 	.word	0x20000000
 
 080007c8 <buttonGetPressed>:
- * @param  num : 확인할 버튼 인덱스
- * @return true  : 버튼이 눌림으로 판정됨
- *         false : 눌리지 않음
+ * @param  num : 확인할 버튼 인덱스(0~BUTTON_COUNT-1)
+ * @return true  : 버튼이 눌림으로 판정됨(유효 입력)
+ *         false : 눌리지 않음 또는 디바운싱으로 무시됨
  */
 bool buttonGetPressed(uint8_t num)
 {
@@ -809,18 +845,15 @@ bool buttonGetPressed(uint8_t num)
  80007cc:	af00      	add	r7, sp, #0
  80007ce:	4603      	mov	r3, r0
  80007d0:	71fb      	strb	r3, [r7, #7]
-//	{
-//		return ret;
-//	}
-
-
-	bool ret = false;
+    bool ret = false; // 반환값(기본은 눌리지 않음)
  80007d2:	2300      	movs	r3, #0
  80007d4:	73fb      	strb	r3, [r7, #15]
 
+    // (권장) 인덱스 보호: num 범위를 벗어나면 false 반환
+    // if (num >= BUTTON_COUNT) return false;
 
-	// 현재 버튼 핀 상태가 "눌린 상태(onState)" 인지 확인
-	if(HAL_GPIO_ReadPin(button[num].port, button[num].number) == button[num].onState)
+    // 1) 현재 입력이 "눌린 상태(onState)"인지 확인
+    if (HAL_GPIO_ReadPin(button[num].port, button[num].number) == button[num].onState)
  80007d6:	79fa      	ldrb	r2, [r7, #7]
  80007d8:	4930      	ldr	r1, [pc, #192]	@ (800089c <buttonGetPressed+0xd4>)
  80007da:	4613      	mov	r3, r2
@@ -853,13 +886,13 @@ bool buttonGetPressed(uint8_t num)
  8000812:	781b      	ldrb	r3, [r3, #0]
  8000814:	4298      	cmp	r0, r3
  8000816:	d13c      	bne.n	8000892 <buttonGetPressed+0xca>
-			{
-				uint32_t currTime = HAL_GetTick();		// 현재 시간(ms)
+    {
+        uint32_t currTime = HAL_GetTick(); // 현재 시간(ms)
  8000818:	f000 ffa0 	bl	800175c <HAL_GetTick>
  800081c:	60b8      	str	r0, [r7, #8]
 
-        // 이전 인식 시점과 20ms 이상 차이가 날 때만 처리
-				if(currTime - button[num].prevTime > DEBOUNCE_TIME)
+        // 2) 마지막 유효 입력 시점(prevTime) 이후 DEBOUNCE_TIME(ms) 이상 지났을 때만 인정
+        if (currTime - button[num].prevTime > DEBOUNCE_TIME)
  800081e:	79fa      	ldrb	r2, [r7, #7]
  8000820:	491e      	ldr	r1, [pc, #120]	@ (800089c <buttonGetPressed+0xd4>)
  8000822:	4613      	mov	r3, r2
@@ -873,9 +906,10 @@ bool buttonGetPressed(uint8_t num)
  8000832:	1ad3      	subs	r3, r2, r3
  8000834:	2bc8      	cmp	r3, #200	@ 0xc8
  8000836:	d92c      	bls.n	8000892 <buttonGetPressed+0xca>
-				{
-					// 20ms 후에도 여전히 눌린 상태인지 재확인
-					if(HAL_GPIO_ReadPin(button[num].port, button[num].number) == button[num].onState)
+        {
+            // 3) 다시 한번 눌린 상태인지 재확인
+            //    (채터링/노이즈로 순간적으로 눌린 것처럼 보이는 경우 방지)
+            if (HAL_GPIO_ReadPin(button[num].port, button[num].number) == button[num].onState)
  8000838:	79fa      	ldrb	r2, [r7, #7]
  800083a:	4918      	ldr	r1, [pc, #96]	@ (800089c <buttonGetPressed+0xd4>)
  800083c:	4613      	mov	r3, r2
@@ -908,11 +942,11 @@ bool buttonGetPressed(uint8_t num)
  8000874:	781b      	ldrb	r3, [r3, #0]
  8000876:	4298      	cmp	r0, r3
  8000878:	d10b      	bne.n	8000892 <buttonGetPressed+0xca>
-					{
-						ret = true;											// 유효한 버튼 입력으로 판단
+            {
+                ret = true;                       // 유효 입력으로 판정
  800087a:	2301      	movs	r3, #1
  800087c:	73fb      	strb	r3, [r7, #15]
-						button[num].prevTime = currTime;	// 마지막 버튼 인식 시간 갱신
+                button[num].prevTime = currTime;  // 마지막 인식 시간 갱신
  800087e:	79fa      	ldrb	r2, [r7, #7]
  8000880:	4906      	ldr	r1, [pc, #24]	@ (800089c <buttonGetPressed+0xd4>)
  8000882:	4613      	mov	r3, r2
@@ -923,10 +957,11 @@ bool buttonGetPressed(uint8_t num)
  800088c:	3308      	adds	r3, #8
  800088e:	68ba      	ldr	r2, [r7, #8]
  8000890:	601a      	str	r2, [r3, #0]
-					}
-				}
-			}
-	return ret;			// 버튼 눌림 여부 반환
+            }
+        }
+    }
+
+    return ret; // 버튼 눌림 여부 반환
  8000892:	7bfb      	ldrb	r3, [r7, #15]
 }
  8000894:	4618      	mov	r0, r3
@@ -981,10 +1016,10 @@ void MX_DMA_Init(void)
  80008dc:	40023800 	.word	0x40023800
 
 080008e0 <fndWriteSegment>:
-    0x7F, // 8
-    0x67  // 9
-};
-
+/* =====================================================
+   세그먼트(a~g) 출력 함수
+   data의 각 비트를 읽어 해당 세그먼트 ON/OFF
+   ===================================================== */
 static void fndWriteSegment(uint8_t data)
 {
  80008e0:	b580      	push	{r7, lr}
@@ -992,6 +1027,9 @@ static void fndWriteSegment(uint8_t data)
  80008e4:	af00      	add	r7, sp, #0
  80008e6:	4603      	mov	r3, r0
  80008e8:	71fb      	strb	r3, [r7, #7]
+
+    // Common Anode 방식이므로
+    // 1이면 LOW 출력(켜짐), 0이면 HIGH 출력(꺼짐)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3,  (data & (1<<0)) ? GPIO_PIN_RESET : GPIO_PIN_SET); // a
  80008ea:	79fb      	ldrb	r3, [r7, #7]
  80008ec:	f003 0301 	and.w	r3, r3, #1
@@ -1086,7 +1124,10 @@ static void fndWriteSegment(uint8_t data)
  80009b4:	40020000 	.word	0x40020000
 
 080009b8 <fndAllDigitOff>:
-
+/* =====================================================
+   모든 자리 OFF
+   (멀티플렉싱 시 Ghost 방지용)
+   ===================================================== */
 void fndAllDigitOff(void)
 {
  80009b8:	b580      	push	{r7, lr}
@@ -1120,6 +1161,9 @@ void fndAllDigitOff(void)
 
 080009f8 <fndDotOff>:
 
+/* =====================================================
+   소수점 OFF
+   ===================================================== */
 void fndDotOff(void)
 {
  80009f8:	b580      	push	{r7, lr}
@@ -1136,6 +1180,9 @@ void fndDotOff(void)
 
 08000a10 <fndDotOn>:
 
+/* =====================================================
+   소수점 ON
+   ===================================================== */
 void fndDotOn(void)
 {
  8000a10:	b580      	push	{r7, lr}
@@ -1151,7 +1198,10 @@ void fndDotOn(void)
  8000a24:	40020800 	.word	0x40020800
 
 08000a28 <fndDisplay>:
-
+/* =====================================================
+   4자리 FND 표시 함수 (멀티플렉싱 방식)
+   data 예: 1234 → 12초 34(10ms 단위)
+   ===================================================== */
 void fndDisplay(uint16_t data)
 {
  8000a28:	b580      	push	{r7, lr}
@@ -1159,10 +1209,10 @@ void fndDisplay(uint16_t data)
  8000a2c:	af00      	add	r7, sp, #0
  8000a2e:	4603      	mov	r3, r0
  8000a30:	80fb      	strh	r3, [r7, #6]
-    static uint8_t position = 0;
+    static uint8_t position = 0;		// 현재 표시 중인 자리
     uint8_t value;
 
-    uint8_t sec = data / 100;   // 앞 2자리
+    uint8_t sec = data / 100;   // 앞 2자리 (sec 단위)
  8000a32:	88fb      	ldrh	r3, [r7, #6]
  8000a34:	4a4a      	ldr	r2, [pc, #296]	@ (8000b60 <fndDisplay+0x138>)
  8000a36:	fba2 2303 	umull	r2, r3, r2, r3
@@ -1180,18 +1230,18 @@ void fndDisplay(uint16_t data)
  8000a52:	b29b      	uxth	r3, r3
  8000a54:	737b      	strb	r3, [r7, #13]
 
-    /* digit OFF */
+    /* 모든 자리 OFF */
     fndAllDigitOff();
  8000a56:	f7ff ffaf 	bl	80009b8 <fndAllDigitOff>
 
-    /* 그먼트 OFF (Anode) */
+    /* 세그먼트 OFF (Anode) */
     fndWriteSegment(0x00);
  8000a5a:	2000      	movs	r0, #0
  8000a5c:	f7ff ff40 	bl	80008e0 <fndWriteSegment>
     fndDotOff();
  8000a60:	f7ff ffca 	bl	80009f8 <fndDotOff>
 
-    /* 자리별 값 선택 */
+    /* 3. 현재 position에 맞는 숫자 선택 */
     switch (position)
  8000a64:	4b3f      	ldr	r3, [pc, #252]	@ (8000b64 <fndDisplay+0x13c>)
  8000a66:	781b      	ldrb	r3, [r3, #0]
@@ -1245,7 +1295,7 @@ void fndDisplay(uint16_t data)
  8000ace:	bf00      	nop
     }
 
-    /* 세그먼트 출력 */
+    /* 4. 세그먼트 데이터 출력 */
     fndWriteSegment(fndData[value]);
  8000ad0:	7bfb      	ldrb	r3, [r7, #15]
  8000ad2:	4a26      	ldr	r2, [pc, #152]	@ (8000b6c <fndDisplay+0x144>)
@@ -1253,6 +1303,7 @@ void fndDisplay(uint16_t data)
  8000ad6:	4618      	mov	r0, r3
  8000ad8:	f7ff ff02 	bl	80008e0 <fndWriteSegment>
 
+    // 두 번째 자리 뒤에 소수점 표시
     if (position == 1)
  8000adc:	4b21      	ldr	r3, [pc, #132]	@ (8000b64 <fndDisplay+0x13c>)
  8000ade:	781b      	ldrb	r3, [r3, #0]
@@ -1263,7 +1314,7 @@ void fndDisplay(uint16_t data)
  8000ae4:	f7ff ff94 	bl	8000a10 <fndDotOn>
         }
 
-    /* 자리 선택 */
+    /* 5. 현재 자리 ON */
     switch (position)
  8000ae8:	4b1e      	ldr	r3, [pc, #120]	@ (8000b64 <fndDisplay+0x13c>)
  8000aea:	781b      	ldrb	r3, [r3, #0]
@@ -1303,6 +1354,7 @@ void fndDisplay(uint16_t data)
  8000b3c:	bf00      	nop
     }
 
+    // 다음 자리로 이동 (0 → 1 → 2 → 3 → 0 반복)
     position = (position + 1) % 4;
  8000b3e:	4b09      	ldr	r3, [pc, #36]	@ (8000b64 <fndDisplay+0x13c>)
  8000b40:	781b      	ldrb	r3, [r3, #0]
@@ -1547,10 +1599,10 @@ void MX_GPIO_Init(void)
  8000cdc:	40020000 	.word	0x40020000
 
 08000ce0 <ledOn>:
-		};
+/* =====================================================
+   지정 개수만큼 LED ON
+   ===================================================== */
 
-
-// LED 전부 On
 void ledOn(uint8_t num)
 {
  8000ce0:	b580      	push	{r7, lr}
@@ -1599,8 +1651,9 @@ void ledOn(uint8_t num)
 
 08000d30 <ledOff>:
 
-
-// LED 전부 Off
+/* =====================================================
+   지정 개수만큼 LED OFF
+   ===================================================== */
 void ledOff(uint8_t num)
 {
  8000d30:	b580      	push	{r7, lr}
@@ -1648,10 +1701,10 @@ void ledOff(uint8_t num)
  8000d7c:	20000030 	.word	0x20000030
 
 08000d80 <ledLeftShiftFan_Start>:
-};
 
-
-
+/* =====================================================
+   팬 모드 시작 (논블로킹)
+   ===================================================== */
 void ledLeftShiftFan_Start(void)
 {
  8000d80:	b580      	push	{r7, lr}
@@ -1679,6 +1732,9 @@ void ledLeftShiftFan_Start(void)
 
 08000dac <ledLeftShiftFan_Stop>:
 
+/* =====================================================
+   팬 모드 정지
+   ===================================================== */
 void ledLeftShiftFan_Stop(void)
 {
  8000dac:	b580      	push	{r7, lr}
@@ -1702,6 +1758,7 @@ void ledLeftShiftFan_Stop(void)
  8000dcc:	200000ac 	.word	0x200000ac
 
 08000dd0 <ledLeftShiftFan_Task>:
+   ===================================================== */
 
 //static int8_t fanDir   = 1;   // +1: 증가(→), -1: 감소(←)
 
@@ -1870,12 +1927,12 @@ int main(void)
  8000ea0:	f7ff fe6a 	bl	8000b78 <MX_GPIO_Init>
   MX_DMA_Init();
  8000ea4:	f7ff fcfc 	bl	80008a0 <MX_DMA_Init>
-  MX_USART1_UART_Init();
- 8000ea8:	f000 fb24 	bl	80014f4 <MX_USART1_UART_Init>
   MX_TIM2_Init();
- 8000eac:	f000 f9a0 	bl	80011f0 <MX_TIM2_Init>
+ 8000ea8:	f000 f9a2 	bl	80011f0 <MX_TIM2_Init>
   MX_TIM3_Init();
- 8000eb0:	f000 fa14 	bl	80012dc <MX_TIM3_Init>
+ 8000eac:	f000 fa16 	bl	80012dc <MX_TIM3_Init>
+  MX_USART1_UART_Init();
+ 8000eb0:	f000 fb20 	bl	80014f4 <MX_USART1_UART_Init>
   /* USER CODE BEGIN 2 */
 
 
@@ -2088,30 +2145,31 @@ __STATIC_FORCEINLINE void __disable_irq(void)
 
 08000fcc <Servo_Init>:
 
-
-
-// 서보 초기화
+/* ===============================
+   서보 초기화 함수
+   =============================== */
 void Servo_Init(void)
 {
  8000fcc:	b480      	push	{r7}
  8000fce:	af00      	add	r7, sp, #0
-  servoState = SERVO_STOP;
+  servoState = SERVO_STOP;				// 초기 상태는 정지
  8000fd0:	4b0a      	ldr	r3, [pc, #40]	@ (8000ffc <Servo_Init+0x30>)
  8000fd2:	2200      	movs	r2, #0
  8000fd4:	701a      	strb	r2, [r3, #0]
-  Servo_Position   = SERVO_CENTER;
+  Servo_Position   = SERVO_CENTER;		// 중앙 위치에서 시작
  8000fd6:	4b0a      	ldr	r3, [pc, #40]	@ (8001000 <Servo_Init+0x34>)
  8000fd8:	228c      	movs	r2, #140	@ 0x8c
  8000fda:	801a      	strh	r2, [r3, #0]
-  direction        = 1;
+  direction        = 1;					// 초기 방향은 RIGHT
  8000fdc:	4b09      	ldr	r3, [pc, #36]	@ (8001004 <Servo_Init+0x38>)
  8000fde:	2201      	movs	r2, #1
  8000fe0:	701a      	strb	r2, [r3, #0]
-  prevTime   = 0;
+  prevTime   = 0;						// 시간 초기화
  8000fe2:	4b09      	ldr	r3, [pc, #36]	@ (8001008 <Servo_Init+0x3c>)
  8000fe4:	2200      	movs	r2, #0
  8000fe6:	601a      	str	r2, [r3, #0]
 
+  // TIM3 CH1 PWM 비교값 설정 → 실제 서보 각도 반영
   TIM3->CCR1 = Servo_Position;
  8000fe8:	4b05      	ldr	r3, [pc, #20]	@ (8001000 <Servo_Init+0x34>)
  8000fea:	881a      	ldrh	r2, [r3, #0]
@@ -2130,32 +2188,33 @@ void Servo_Init(void)
  800100c:	40000400 	.word	0x40000400
 
 08001010 <Servo_Swap>:
-
-
-
-// 서보 회전
+/* ===============================
+   서보 동작 토글 함수
+   (버튼 등으로 호출)
+   =============================== */
 void Servo_Swap()
 {
  8001010:	b480      	push	{r7}
  8001012:	af00      	add	r7, sp, #0
-  if (servoState == SERVO_STOP)
+	// 현재 정지 상태면 회전 시작
+	if (servoState == SERVO_STOP)
  8001014:	4b07      	ldr	r3, [pc, #28]	@ (8001034 <Servo_Swap+0x24>)
  8001016:	781b      	ldrb	r3, [r3, #0]
  8001018:	2b00      	cmp	r3, #0
  800101a:	d103      	bne.n	8001024 <Servo_Swap+0x14>
-  {
-      servoState = SERVO_ROTATE;
+	{
+		servoState = SERVO_ROTATE;
  800101c:	4b05      	ldr	r3, [pc, #20]	@ (8001034 <Servo_Swap+0x24>)
  800101e:	2201      	movs	r2, #1
  8001020:	701a      	strb	r2, [r3, #0]
-  }
-  else
-  {
-      servoState = SERVO_STOP;
-  }
+	// 이미 회전 중이면 정지
+	else
+	{
+		servoState = SERVO_STOP;
+	}
 }
  8001022:	e002      	b.n	800102a <Servo_Swap+0x1a>
-      servoState = SERVO_STOP;
+		servoState = SERVO_STOP;
  8001024:	4b03      	ldr	r3, [pc, #12]	@ (8001034 <Servo_Swap+0x24>)
  8001026:	2200      	movs	r2, #0
  8001028:	701a      	strb	r2, [r3, #0]
@@ -2168,14 +2227,14 @@ void Servo_Swap()
 
 08001038 <Servo_Stop>:
 
-
-
-// 버튼_1을 위한 강제 종료
+/* ===============================
+   강제 정지 함수
+   =============================== */
 void Servo_Stop()
 {
  8001038:	b480      	push	{r7}
  800103a:	af00      	add	r7, sp, #0
-  servoState = SERVO_STOP;
+  servoState = SERVO_STOP;		// 상태를 정지로 변경
  800103c:	4b03      	ldr	r3, [pc, #12]	@ (800104c <Servo_Stop+0x14>)
  800103e:	2200      	movs	r2, #0
  8001040:	701a      	strb	r2, [r3, #0]
@@ -2187,22 +2246,26 @@ void Servo_Stop()
  800104c:	200000ba 	.word	0x200000ba
 
 08001050 <Servo_Run>:
-
-
-// main 함수 호출용
+/* ===============================
+   주기적으로 호출되는 실행 함수
+   main loop에서 계속 호출해야 함
+   =============================== */
 void Servo_Run(void)
 {
  8001050:	b580      	push	{r7, lr}
  8001052:	af00      	add	r7, sp, #0
-  if (servoState == SERVO_STOP)				return;
+
+	// 정지 상태면 아무 동작도 하지 않음
+	if (servoState == SERVO_STOP)				return;
  8001054:	4b1f      	ldr	r3, [pc, #124]	@ (80010d4 <Servo_Run+0x84>)
  8001056:	781b      	ldrb	r3, [r3, #0]
  8001058:	2b00      	cmp	r3, #0
  800105a:	d036      	beq.n	80010ca <Servo_Run+0x7a>
 
 
-  /* 20ms마다 한 칸 이동 */
-  if (HAL_GetTick() - prevTime < 20) 	return;
+	// 20ms 간격으로 한 스텝씩 이동
+	// (너무 빠르게 움직이지 않도록 속도 제어)
+	if (HAL_GetTick() - prevTime < 20) 	return;
  800105c:	f000 fb7e 	bl	800175c <HAL_GetTick>
  8001060:	4602      	mov	r2, r0
  8001062:	4b1d      	ldr	r3, [pc, #116]	@ (80010d8 <Servo_Run+0x88>)
@@ -2211,19 +2274,21 @@ void Servo_Run(void)
  8001068:	2b13      	cmp	r3, #19
  800106a:	d930      	bls.n	80010ce <Servo_Run+0x7e>
 
-  prevTime = HAL_GetTick();
+	prevTime = HAL_GetTick();
  800106c:	f000 fb76 	bl	800175c <HAL_GetTick>
  8001070:	4603      	mov	r3, r0
  8001072:	4a19      	ldr	r2, [pc, #100]	@ (80010d8 <Servo_Run+0x88>)
  8001074:	6013      	str	r3, [r2, #0]
 
-  if (direction == 1)
+
+	// 현재 방향에 따라 위치 증가/감소
+	if (direction == 1)
  8001076:	4b19      	ldr	r3, [pc, #100]	@ (80010dc <Servo_Run+0x8c>)
  8001078:	781b      	ldrb	r3, [r3, #0]
  800107a:	2b01      	cmp	r3, #1
  800107c:	d106      	bne.n	800108c <Servo_Run+0x3c>
-  {
-      Servo_Position = Servo_Position + 1;
+	{
+		Servo_Position = Servo_Position + 1;	// 오른쪽 방향
  800107e:	4b18      	ldr	r3, [pc, #96]	@ (80010e0 <Servo_Run+0x90>)
  8001080:	881b      	ldrh	r3, [r3, #0]
  8001082:	3301      	adds	r3, #1
@@ -2231,60 +2296,66 @@ void Servo_Run(void)
  8001086:	4b16      	ldr	r3, [pc, #88]	@ (80010e0 <Servo_Run+0x90>)
  8001088:	801a      	strh	r2, [r3, #0]
  800108a:	e005      	b.n	8001098 <Servo_Run+0x48>
-  }
-  else
-  {
-      Servo_Position = Servo_Position - 1;
+	}
+	else
+	{
+		Servo_Position = Servo_Position - 1;	// 왼쪽 방향
  800108c:	4b14      	ldr	r3, [pc, #80]	@ (80010e0 <Servo_Run+0x90>)
  800108e:	881b      	ldrh	r3, [r3, #0]
  8001090:	3b01      	subs	r3, #1
  8001092:	b29a      	uxth	r2, r3
  8001094:	4b12      	ldr	r3, [pc, #72]	@ (80010e0 <Servo_Run+0x90>)
  8001096:	801a      	strh	r2, [r3, #0]
-  }
+	}
 
-  if (Servo_Position >= SERVO_RIGHT)
+
+	// 오른쪽 끝에 도달하면 방향 전환
+	if (Servo_Position >= SERVO_RIGHT)
  8001098:	4b11      	ldr	r3, [pc, #68]	@ (80010e0 <Servo_Run+0x90>)
  800109a:	881b      	ldrh	r3, [r3, #0]
  800109c:	2bef      	cmp	r3, #239	@ 0xef
  800109e:	d905      	bls.n	80010ac <Servo_Run+0x5c>
-  {
-      Servo_Position = SERVO_RIGHT;
+	{
+		Servo_Position = SERVO_RIGHT;
  80010a0:	4b0f      	ldr	r3, [pc, #60]	@ (80010e0 <Servo_Run+0x90>)
  80010a2:	22f0      	movs	r2, #240	@ 0xf0
  80010a4:	801a      	strh	r2, [r3, #0]
-      direction = 0;
+		direction = 0;							// 왼쪽으로 변경
  80010a6:	4b0d      	ldr	r3, [pc, #52]	@ (80010dc <Servo_Run+0x8c>)
  80010a8:	2200      	movs	r2, #0
  80010aa:	701a      	strb	r2, [r3, #0]
-  }
+	}
 
-  if (Servo_Position <= SERVO_LEFT)
+
+	// 왼쪽 끝에 도달하면 방향 전환
+	if (Servo_Position <= SERVO_LEFT)
  80010ac:	4b0c      	ldr	r3, [pc, #48]	@ (80010e0 <Servo_Run+0x90>)
  80010ae:	881b      	ldrh	r3, [r3, #0]
  80010b0:	2b28      	cmp	r3, #40	@ 0x28
  80010b2:	d805      	bhi.n	80010c0 <Servo_Run+0x70>
-  {
-      Servo_Position = SERVO_LEFT;
+	{
+		Servo_Position = SERVO_LEFT;
  80010b4:	4b0a      	ldr	r3, [pc, #40]	@ (80010e0 <Servo_Run+0x90>)
  80010b6:	2228      	movs	r2, #40	@ 0x28
  80010b8:	801a      	strh	r2, [r3, #0]
-      direction = 1;
+		direction = 1;							// 오른쪽으로 변경
  80010ba:	4b08      	ldr	r3, [pc, #32]	@ (80010dc <Servo_Run+0x8c>)
  80010bc:	2201      	movs	r2, #1
  80010be:	701a      	strb	r2, [r3, #0]
-  }
+	}
 
-  TIM3->CCR1 = Servo_Position;
+
+	// 변경된 위치를 PWM 레지스터에 반영
+	TIM3->CCR1 = Servo_Position;
  80010c0:	4b07      	ldr	r3, [pc, #28]	@ (80010e0 <Servo_Run+0x90>)
  80010c2:	881a      	ldrh	r2, [r3, #0]
  80010c4:	4b07      	ldr	r3, [pc, #28]	@ (80010e4 <Servo_Run+0x94>)
  80010c6:	635a      	str	r2, [r3, #52]	@ 0x34
  80010c8:	e002      	b.n	80010d0 <Servo_Run+0x80>
-  if (servoState == SERVO_STOP)				return;
+	if (servoState == SERVO_STOP)				return;
  80010ca:	bf00      	nop
  80010cc:	e000      	b.n	80010d0 <Servo_Run+0x80>
-  if (HAL_GetTick() - prevTime < 20) 	return;
+	if (HAL_GetTick() - prevTime < 20) 	return;
  80010ce:	bf00      	nop
 }
  80010d0:	bd80      	pop	{r7, pc}
@@ -2297,9 +2368,9 @@ void Servo_Run(void)
 
 080010e8 <Servo_IsRunning>:
 
-
-
-
+/* ===============================
+   현재 서보가 동작 중인지 확인
+   =============================== */
 bool Servo_IsRunning(void)
 {
  80010e8:	b480      	push	{r7}

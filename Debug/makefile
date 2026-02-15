@@ -60,8 +60,8 @@ all: main-build
 main-build: Fan_project_R01.elf secondary-outputs
 
 # Tool invocations
-Fan_project_R01.elf Fan_project_R01.map: $(OBJS) $(USER_OBJS) /home/parkdoyoung/workspace_ondevice_2/IDE_arm/Fan_project_R01/STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "Fan_project_R01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/parkdoyoung/workspace_ondevice_2/IDE_arm/Fan_project_R01/STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Fan_project_R01.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Fan_project_R01.elf Fan_project_R01.map: $(OBJS) $(USER_OBJS) /home/lenovo/workspace_ondevice_2/project_fan/Fan_project_R01/STM32F411RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "Fan_project_R01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/home/lenovo/workspace_ondevice_2/project_fan/Fan_project_R01/STM32F411RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Fan_project_R01.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
