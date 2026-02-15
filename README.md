@@ -76,7 +76,7 @@
 
 ### 📁 Core/Src
 
-- `main.c` – 메인 제어 상태
+- `main.c` – 메인 상태 제어
 - `button.c` – 디바운싱 및 이벤트 처리
 - `led.c` – LED 상태 표현
 - `servo.c` – 서보모터 제어
